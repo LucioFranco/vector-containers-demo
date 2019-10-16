@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: flog
+  labels:
+    app: flog
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: flog
+  template:
+    metadata:
+      labels:
+        app: flog
+    spec:
+      containers:
+      - name: echo
+        image: mingrammer/flog
+        command: ["flog", "--loop", "--delay", "1", "-f", "rfc5424"]

@@ -1,0 +1,6 @@
+[sources.docker]
+type = "docker"
+
+[sinks.console]
+type = "console"
+inputs = ["docker"]

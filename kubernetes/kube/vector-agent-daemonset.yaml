@@ -1,0 +1,66 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: vector-agent
+  namespace: telemetry
+  labels:
+    app.kubernetes.io/name: vector
+    app.kubernetes.io/version: 0.4.0-dev
+spec:
+  minReadySeconds: 1
+  selector:
+    matchLabels:
+      name: vector
+  template:
+    metadata:
+      labels:
+        name: vector
+        version: 0.4.0-dev
+    spec:
+      volumes:
+      - name: var-log
+        hostPath:
+          path: /var/log/
+      - name: var-lib
+        hostPath:
+          path: /var/lib/
+      - name: data-dir
+        emptyDir: {}
+      - name: config-dir
+        configMap:
+         name: vector-config
+         items:
+           - key: vector-agent-config
+             path: vector.toml
+      - name: cloudwatch-secrets
+        secret:
+          secretName: vector-cloudwatch
+      containers:
+      - name: vector
+        image: luciofranco/vector-kube-demo2
+        imagePullPolicy: Always
+        command: ["vector", "-c", "/etc/vector/vector.toml"]
+        env:
+        - name: AWS_SHARED_CREDENTIALS_FILE
+          value: /vector/secrets/vector-cloudwatch-iam
+        volumeMounts:
+        - name: var-log
+          mountPath: /var/log/
+          readOnly: true
+        - name: var-lib
+          mountPath: /var/lib
+          readOnly: true
+        - name: data-dir
+          mountPath: /var/tmp/vector
+        - name: config-dir
+          mountPath: /etc/vector
+          readOnly: true
+        - name: cloudwatch-secrets
+          mountPath: /vector/secrets
+          readOnly: true
+        resources:
+          limits:
+            memory: 100Mi
+          requests:
+            cpu: 100m
+            memory: 100Mi

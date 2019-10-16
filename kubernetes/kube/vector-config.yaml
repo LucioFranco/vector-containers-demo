@@ -1,0 +1,25 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+   name: telemetry
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: vector-config
+  namespace: telemetry
+data:
+  vector-agent-config: |
+    data_dir = "/var/tmp/vector"
+
+    # Ingest logs from Kubernetes
+    [sources.kubernetes]
+      type = "kubernetes"
+
+    [sinks.cloudwatch]
+    type = "aws_cloudwatch_logs"
+    encoding = "json"
+    inputs = ["kubernetes"]
+    group_name = "/kube-demo/echo"
+    stream_name = "{{ pod_uid }}"
+    region = "us-east-1"
